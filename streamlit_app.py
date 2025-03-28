@@ -11,7 +11,7 @@ st.set_page_config(page_title="Price History Viewer", layout="wide")
 @st.cache_data
 def load_image_data():
     try:
-        with open("main/data/img.csv", 'r', encoding='utf-8') as file:
+        with open("data/img.csv", 'r', encoding='utf-8') as file:
             lines = file.readlines()
         
         img_dict = {}
@@ -33,7 +33,7 @@ def load_image_data():
 
 @st.cache_data(ttl=60)
 def load_data():
-    file_path = "main/data/price_history.csv"
+    file_path = "data/price_history.csv"
     last_modified = os.path.getmtime(file_path)
     df = pd.read_csv(file_path)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -41,7 +41,7 @@ def load_data():
 
 @st.cache_data
 def load_supply_data():
-    supply_path = "main/data/nft_supply_results.csv"
+    supply_path = "data/nft_supply_results.csv"
     try:
         supply_df = pd.read_csv(supply_path)
         supply_dict = dict(zip(supply_df['Item Name'], supply_df['Estimated Supply']))
