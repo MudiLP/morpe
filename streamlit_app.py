@@ -198,6 +198,44 @@ def main():
                 f"- {hours:.2f} часов\n"
                 f"- {days:.2f} дней"
             )
+
+    if selected_items:
+        # Фильтруем данные по выбранному временному интервалу
+        filtered_df = get_time_filtered_data(df, selected_minutes)
+        
+        fig = go.Figure()
+        
+        for item in selected_items:
+            fig.add_trace(go.Scatter(
+                x=filtered_df['timestamp'],
+                y=filtered_df[item],
+                mode='lines',
+                name=f"{item} (Supply: {int(supply_dict.get(item, 0))})"
+            ))
+            
+            if show_ma:
+                window = int(ma_period * 2)
+                ma = filtered_df[item].rolling(window=window).mean()
+                fig.add_trace(go.Scatter(
+                    x=filtered_df['timestamp'],
+                    y=ma,
+                    mode='lines',
+                    line=dict(dash='dash'),
+                    name=f'{item} MA({ma_period}h)'
+                ))
+        
+        fig.update_layout(
+            height=600,
+            xaxis_title="Время",
+            yaxis_title="Цена",
+            hovermode='x unified',
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01
+            )
+        )
         
         st.plotly_chart(fig, use_container_width=True)
                 
