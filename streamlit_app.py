@@ -71,7 +71,7 @@ def main():
         st.header("Фильтры")
         
         selected_items_with_supply = st.multiselect(
-            f"Выберите предметы (всего: {len(items)})",  # Добавляем количество предметов здесь
+            f"Выберите предметы (всего: {len(items)})",
             items_with_supply,
             default=[items_with_supply[0]] if items_with_supply else []
         )
@@ -89,13 +89,16 @@ def main():
         if show_ma:
             ma_period = st.slider("Период скользящей средней (часов)", 1, 24, 6)
 
-        # Отображение графика и статистики
+    # Проверка date_range перемещена сюда
+    if len(date_range) != 2:
+        st.error("Пожалуйста, выберите две даты для определения периода")
+        return
+
+    # Отображение графика и статистики
     if selected_items:
-        # График
+        # График (оставляем только одну обработку filtered_df)
         mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
         filtered_df = df.loc[mask]
-        
-        fig = go.Figure()
         
         for item in selected_items:
             fig.add_trace(go.Scatter(
