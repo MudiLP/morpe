@@ -181,17 +181,14 @@ def main():
                 max_price = filtered_df[item].max()
                 supply = supply_dict.get(item, 0)
                 
-                # Добавляем цветовое оформление для процентного изменения
-                price_change_color = "green" if price_change >= 0 else "red"
-                price_change_arrow = "↑" if price_change >= 0 else "↓"
-                price_change_text = f"{price_change_arrow} {abs(price_change_percent):.2f}%"
+                # Расчет волатильности
+                volatility = ((max_price - min_price) / min_price) * 100
                 
                 col1.metric("Текущая цена", f"{current_price:.2f}")
                 col2.metric("Минимальная цена", f"{min_price:.2f}")
                 col3.metric("Максимальная цена", f"{max_price:.2f}")
                 col4.metric("Supply", f"{int(supply)}")
-                col5.markdown(f"<h3 style='color: {price_change_color}; text-align: center;'>{price_change_text}</h3>", 
-                            unsafe_allow_html=True)
+                col5.metric("Волатильность", f"{volatility:.2f}%")
                 
 if __name__ == "__main__":
     main()
