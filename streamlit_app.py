@@ -7,25 +7,6 @@ import os
 # Настройка страницы
 st.set_page_config(page_title="Price History Viewer", layout="wide")
 
-st.markdown("""
-    <style>
-    /* Стилизация бегунка */
-    .stSlider [data-baseweb="slider"] {
-        background-color: rgba(28, 131, 225, 0.26) !important;
-    }
-    
-    /* Стилизация ползунка */
-    .stSlider [data-baseweb="thumb"] {
-        background-color: rgb(28, 131, 225) !important;
-    }
-    
-    /* Стилизация активной части бегунка */
-    .stSlider [data-baseweb="track"] {
-        background: linear-gradient(to right, rgb(28, 131, 225), rgb(28, 131, 225)) !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # Функция загрузки данных изображений
 @st.cache_data
 def load_image_data():
