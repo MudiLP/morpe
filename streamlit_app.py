@@ -57,7 +57,12 @@ def main():
     img_dict = load_image_data()
     default_img = "https://i.ibb.co/tpZ9HsSY/photo-2023-12-23-09-42-33.jpg"
 
+    # Заголовок
+    st.title("Price History Analysis")
+    
     items = [col for col in df.columns if col != 'timestamp']
+    # Убираем st.metric отсюда
+    
     items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
     display_to_original = dict(zip(items_with_supply, items))
     
@@ -84,41 +89,18 @@ def main():
         if show_ma:
             ma_period = st.slider("Период скользящей средней (часов)", 1, 24, 6)
 
-    # Проверка date_range
+    # Проверка date_range перемещена сюда
     if len(date_range) != 2:
         st.error("Пожалуйста, выберите две даты для определения периода")
         return
 
-    # Заголовок с процентным изменением на одной строке
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        st.title("Price History Analysis")
-    
-    with col2:
-        if selected_items and len(selected_items) == 1:
-            item = selected_items[0]
-            mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
-            filtered_df = df.loc[mask]
-            
-            start_price = filtered_df[item].iloc[0]
-            end_price = filtered_df[item].iloc[-1]
-            price_change = end_price - start_price
-            price_change_percent = (price_change / start_price) * 100
-            
-            price_change_color = "green" if price_change >= 0 else "red"
-            price_change_arrow = "↑" if price_change >= 0 else "↓"
-            
-            st.markdown(
-                f"<h2 style='color: {price_change_color}; text-align: right; margin-top: 15px;'>{price_change_arrow} {abs(price_change_percent):.2f}%</h2>",
-                unsafe_allow_html=True
-            )
-
-    # Отображение графика и статистики
+        # Отображение графика и статистики
     if selected_items:
-        # График
+        # График (оставляем только одну обработку filtered_df)
         mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
         filtered_df = df.loc[mask]
         
+        # Добавляем создание объекта Figure
         fig = go.Figure()
         
         for item in selected_items:
@@ -156,6 +138,14 @@ def main():
         st.plotly_chart(fig, use_container_width=True)
         
         if len(selected_items) == 1:
+            item = selected_items[0]
+            
+            # Расчет процентного изменения
+            start_price = filtered_df[item].iloc[0]  # Цена в начале периода
+            end_price = filtered_df[item].iloc[-1]   # Цена в конце периода
+            price_change = end_price - start_price
+            price_change_percent = (price_change / start_price) * 100
+
             img_col, stats_col = st.columns([1, 2])
             
             with img_col:
@@ -164,14 +154,24 @@ def main():
             
             with stats_col:
                 st.subheader(f"Статистика - {item}")
-                col1, col2, col3, col4 = st.columns(4)
+                col1, col2, col3, col4, col5 = st.columns(5)  # Добавили пятую колонку
                 
                 current_price = filtered_df[item].iloc[-1]
+                min_price = filtered_df[item].min()
+                max_price = filtered_df[item].max()
+                supply = supply_dict.get(item, 0)
+                
+                # Добавляем цветовое оформление для процентного изменения
+                price_change_color = "green" if price_change >= 0 else "red"
+                price_change_arrow = "↑" if price_change >= 0 else "↓"
+                price_change_text = f"{price_change_arrow} {abs(price_change_percent):.2f}%"
                 
                 col1.metric("Текущая цена", f"{current_price:.2f}")
                 col2.metric("Минимальная цена", f"{min_price:.2f}")
                 col3.metric("Максимальная цена", f"{max_price:.2f}")
-                col4.metric("Supply", f"{int(supply_dict.get(item, 0))}")
+                col4.metric("Supply", f"{int(supply)}")
+                col5.markdown(f"<h3 style='color: {price_change_color}; text-align: center;'>{price_change_text}</h3>", 
+                            unsafe_allow_html=True)
                 
 if __name__ == "__main__":
     main()
