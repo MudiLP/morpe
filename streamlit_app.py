@@ -57,12 +57,31 @@ def main():
     img_dict = load_image_data()
     default_img = "https://i.ibb.co/tpZ9HsSY/photo-2023-12-23-09-42-33.jpg"
 
-    # Заголовок
-    st.title("Price History Analysis")
+    # Заголовок с процентным изменением на одной строке
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.title("Price History Analysis")
     
+    with col2:
+        if selected_items and len(selected_items) == 1:
+            item = selected_items[0]
+            mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
+            filtered_df = df.loc[mask]
+            
+            start_price = filtered_df[item].iloc[0]
+            end_price = filtered_df[item].iloc[-1]
+            price_change = end_price - start_price
+            price_change_percent = (price_change / start_price) * 100
+            
+            price_change_color = "green" if price_change >= 0 else "red"
+            price_change_arrow = "↑" if price_change >= 0 else "↓"
+            
+            st.markdown(
+                f"<h2 style='color: {price_change_color}; text-align: right; margin-top: 15px;'>{price_change_arrow} {abs(price_change_percent):.2f}%</h2>",
+                unsafe_allow_html=True
+            )
+
     items = [col for col in df.columns if col != 'timestamp']
-    items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
-    display_to_original = dict(zip(items_with_supply, items))
     
     # Боковая панель с фильтрами
     with st.sidebar:
