@@ -57,12 +57,12 @@ def main():
     img_dict = load_image_data()
     default_img = "https://i.ibb.co/tpZ9HsSY/photo-2023-12-23-09-42-33.jpg"
 
-    # Заголовок
-    st.title("Price History Analysis")
+    # Заголовок и процентное изменение в одной строке
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.title("Price History Analysis")
     
     items = [col for col in df.columns if col != 'timestamp']
-    # Убираем st.metric отсюда
-    
     items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
     display_to_original = dict(zip(items_with_supply, items))
     
@@ -84,12 +84,28 @@ def main():
             min_value=df['timestamp'].min().date(),
             max_value=df['timestamp'].max().date()
         )
-        
-        show_ma = st.checkbox("Показать скользящую среднюю", value=True)
-        if show_ma:
-            ma_period = st.slider("Период скользящей средней (часов)", 1, 24, 6)
 
-    # Проверка date_range перемещена сюда
+    # После определения selected_items и date_range добавляем процентное изменение
+    with col2:
+        if selected_items and len(selected_items) == 1:
+            item = selected_items[0]
+            mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
+            filtered_df = df.loc[mask]
+            
+            start_price = filtered_df[item].iloc[0]
+            end_price = filtered_df[item].iloc[-1]
+            price_change = end_price - start_price
+            price_change_percent = (price_change / start_price) * 100
+            
+            price_change_color = "green" if price_change >= 0 else "red"
+            price_change_arrow = "↑" if price_change >= 0 else "↓"
+            
+            st.markdown(
+                f"<h2 style='color: {price_change_color}; text-align: right; margin-top: 15px;'>{price_change_arrow} {abs(price_change_percent):.2f}%</h2>",
+                unsafe_allow_html=True
+            )
+
+    # Проверка date_range
     if len(date_range) != 2:
         st.error("Пожалуйста, выберите две даты для определения периода")
         return
