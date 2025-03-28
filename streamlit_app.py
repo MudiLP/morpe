@@ -57,31 +57,9 @@ def main():
     img_dict = load_image_data()
     default_img = "https://i.ibb.co/tpZ9HsSY/photo-2023-12-23-09-42-33.jpg"
 
-    # Заголовок с процентным изменением на одной строке
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        st.title("Price History Analysis")
-    
-    with col2:
-        if selected_items and len(selected_items) == 1:
-            item = selected_items[0]
-            mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
-            filtered_df = df.loc[mask]
-            
-            start_price = filtered_df[item].iloc[0]
-            end_price = filtered_df[item].iloc[-1]
-            price_change = end_price - start_price
-            price_change_percent = (price_change / start_price) * 100
-            
-            price_change_color = "green" if price_change >= 0 else "red"
-            price_change_arrow = "↑" if price_change >= 0 else "↓"
-            
-            st.markdown(
-                f"<h2 style='color: {price_change_color}; text-align: right; margin-top: 15px;'>{price_change_arrow} {abs(price_change_percent):.2f}%</h2>",
-                unsafe_allow_html=True
-            )
-
     items = [col for col in df.columns if col != 'timestamp']
+    items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
+    display_to_original = dict(zip(items_with_supply, items))
     
     # Боковая панель с фильтрами
     with st.sidebar:
@@ -111,34 +89,27 @@ def main():
         st.error("Пожалуйста, выберите две даты для определения периода")
         return
 
-    # Показываем процентное изменение после заголовка для одного предмета
-    if selected_items and len(selected_items) == 1:
-        item = selected_items[0]
-        mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
-        filtered_df = df.loc[mask]
-        
-        start_price = filtered_df[item].iloc[0]
-        end_price = filtered_df[item].iloc[-1]
-        price_change = end_price - start_price
-        price_change_percent = (price_change / start_price) * 100
-        
-        # Расчет волатильности
-        min_price = filtered_df[item].min()
-        max_price = filtered_df[item].max()
-        volatility = ((max_price - min_price) / min_price) * 100
-        
-        price_change_color = "green" if price_change >= 0 else "red"
-        price_change_arrow = "↑" if price_change >= 0 else "↓"
-        
-        col1, col2 = st.columns(2)
-        with col1:
+    # Заголовок с процентным изменением на одной строке
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.title("Price History Analysis")
+    
+    with col2:
+        if selected_items and len(selected_items) == 1:
+            item = selected_items[0]
+            mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
+            filtered_df = df.loc[mask]
+            
+            start_price = filtered_df[item].iloc[0]
+            end_price = filtered_df[item].iloc[-1]
+            price_change = end_price - start_price
+            price_change_percent = (price_change / start_price) * 100
+            
+            price_change_color = "green" if price_change >= 0 else "red"
+            price_change_arrow = "↑" if price_change >= 0 else "↓"
+            
             st.markdown(
-                f"<h2 style='color: {price_change_color}; text-align: center;'>{price_change_arrow} {abs(price_change_percent):.2f}%</h2>",
-                unsafe_allow_html=True
-            )
-        with col2:
-            st.markdown(
-                f"<h2 style='text-align: center;'>Волатильность: {volatility:.2f}%</h2>",
+                f"<h2 style='color: {price_change_color}; text-align: right; margin-top: 15px;'>{price_change_arrow} {abs(price_change_percent):.2f}%</h2>",
                 unsafe_allow_html=True
             )
 
