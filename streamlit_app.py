@@ -50,6 +50,26 @@ def load_supply_data():
         st.error(f"Файл {supply_path} не найден.")
         return {}
 
+def get_time_filtered_data(df, time_filter):
+    now = df['timestamp'].max()
+    
+    if time_filter == '30min':
+        start_time = now - timedelta(minutes=30)
+    elif time_filter == '1h':
+        start_time = now - timedelta(hours=1)
+    elif time_filter == '12h':
+        start_time = now - timedelta(hours=12)
+    elif time_filter == '1d':
+        start_time = now - timedelta(days=1)
+    elif time_filter == '1w':
+        start_time = now - timedelta(weeks=1)
+    elif time_filter == '7d':
+        start_time = now - timedelta(days=7)
+    else:  # 'all'
+        return df
+    
+    return df[df['timestamp'] >= start_time]
+
 def main():
     # Загрузка всех данных
     df, _ = load_data()
@@ -57,12 +77,9 @@ def main():
     img_dict = load_image_data()
     default_img = "https://i.ibb.co/tpZ9HsSY/photo-2023-12-23-09-42-33.jpg"
 
-    # Заголовок
     st.title("Price History Analysis")
     
     items = [col for col in df.columns if col != 'timestamp']
-    # Убираем st.metric отсюда
-    
     items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
     display_to_original = dict(zip(items_with_supply, items))
     
@@ -71,29 +88,28 @@ def main():
         st.header("Фильтры")
         
         selected_items_with_supply = st.multiselect(
-            f"Выберите предметы (всего: {len(items)})",  # Добавляем количество предметов здесь
+            f"Выберите предметы (всего: {len(items)})",
             items_with_supply,
             default=[items_with_supply[0]] if items_with_supply else []
         )
         
         selected_items = [display_to_original[item] for item in selected_items_with_supply]
         
-        date_range = st.date_input(
-            "Выберите период",
-            value=(df['timestamp'].min().date(), df['timestamp'].max().date()),
-            min_value=df['timestamp'].min().date(),
-            max_value=df['timestamp'].max().date()
+        # Добавляем переключатели временных интервалов
+        time_filters = ['30min', '1h', '12h', '1d', '1w', '7d', 'all']
+        selected_time_filter = st.radio(
+            "Временной интервал",
+            time_filters,
+            horizontal=True
         )
         
         show_ma = st.checkbox("Показать скользящую среднюю", value=True)
         if show_ma:
             ma_period = st.slider("Период скользящей средней (часов)", 1, 24, 6)
 
-        # Отображение графика и статистики
     if selected_items:
-        # График
-        mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
-        filtered_df = df.loc[mask]
+        # Фильтруем данные по выбранному временному интервалу
+        filtered_df = get_time_filtered_data(df, selected_time_filter)
         
         fig = go.Figure()
         
@@ -130,29 +146,6 @@ def main():
         )
         
         st.plotly_chart(fig, use_container_width=True)
-        
-        if len(selected_items) == 1:
-            # Изображение слева
-            img_col, stats_col = st.columns([1, 2])  # [изображение, статистика]
-            
-            with img_col:
-                img_url = img_dict.get(item, default_img)
-                st.image(img_url, use_container_width=True)
-            
-            with stats_col:
-                item = selected_items[0]
-                st.subheader(f"Статистика - {item}")  # Добавляем название предмета в заголовок
-                col1, col2, col3, col4 = st.columns(4)
-                
-                current_price = filtered_df[item].iloc[-1]
-                min_price = filtered_df[item].min()
-                max_price = filtered_df[item].max()
-                supply = supply_dict.get(item, 0)
-                
-                col1.metric("Текущая цена", f"{current_price:.2f}")
-                col2.metric("Минимальная цена", f"{min_price:.2f}")
-                col3.metric("Максимальная цена", f"{max_price:.2f}")
-                col4.metric("Supply", f"{int(supply)}")
                 
 if __name__ == "__main__":
     main()
