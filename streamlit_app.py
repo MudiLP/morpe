@@ -94,11 +94,14 @@ def main():
         st.error("Пожалуйста, выберите две даты для определения периода")
         return
 
-    # Отображение графика и статистики
+        # Отображение графика и статистики
     if selected_items:
         # График (оставляем только одну обработку filtered_df)
         mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
         filtered_df = df.loc[mask]
+        
+        # Добавляем создание объекта Figure
+        fig = go.Figure()
         
         for item in selected_items:
             fig.add_trace(go.Scatter(
