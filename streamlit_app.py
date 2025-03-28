@@ -141,7 +141,7 @@ def main():
             
             with stats_col:
                 item = selected_items[0]
-                st.subheader(f"Статистика - {item}")  # Добавляем название предмета в заголовок
+                st.subheader(f"Статистика - {item}")
                 col1, col2, col3, col4 = st.columns(4)
                 
                 current_price = filtered_df[item].iloc[-1]
