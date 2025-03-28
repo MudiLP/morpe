@@ -180,15 +180,100 @@ def main():
                 min_price = filtered_df[item].min()
                 max_price = filtered_df[item].max()
                 supply = supply_dict.get(item, 0)
-                
-                # Расчет волатильности
                 volatility = ((max_price - min_price) / min_price) * 100
                 
+                # Сначала отображаем метрики
                 col1.metric("Текущая цена", f"{current_price:.2f}")
                 col2.metric("Минимальная цена", f"{min_price:.2f}")
                 col3.metric("Максимальная цена", f"{max_price:.2f}")
                 col4.metric("Supply", f"{int(supply)}")
                 col5.metric("Волатильность", f"{volatility:.2f}%")
+
+                # Затем добавляем разделитель и анализ волатильности
+                st.markdown("---")  # разделитель
+                st.subheader("Анализ волатильности")
+                
+                def calculate_volatility(df, item):
+                    if len(df) < 2:
+                        return None
+                    min_price = df[item].min()
+                    max_price = df[item].max()
+                    return ((max_price - min_price) / min_price) * 100
+
+                # Получаем текущую дату из данных
+                current_date = df['timestamp'].max()
+
+                # Расчет волатильности за разные периоды
+                vol_cols = st.columns(4)
+                
+                # За день
+                day_mask = df['timestamp'] >= (current_date - pd.Timedelta(days=1))
+                day_df = df.loc[day_mask]
+                day_vol = calculate_volatility(day_df, item)
+                
+                # За неделю
+                week_mask = df['timestamp'] >= (current_date - pd.Timedelta(days=7))
+                week_df = df.loc[week_mask]
+                week_vol = calculate_volatility(week_df, item)
+                
+                # За месяц
+                month_mask = df['timestamp'] >= (current_date - pd.Timedelta(days=30))
+                month_df = df.loc[month_mask]
+                month_vol = calculate_volatility(month_df, item)
+                
+                # За всё время
+                total_vol = volatility  # используем уже рассчитанную общую волатильность
+
+                def get_volatility_status(vol):
+                    if vol is None:
+                        return "Нет данных", "gray"
+                    elif vol < 10:
+                        return "Низкая", "green"
+                    elif vol < 30:
+                        return "Средняя", "orange"
+                    else:
+                        return "Высокая", "red"
+
+                # Отображение результатов с цветовой индикацией
+                periods = [
+                    ("24 часа", day_vol),
+                    ("7 дней", week_vol),
+                    ("30 дней", month_vol),
+                    ("Общая", total_vol)
+                ]
+
+                for i, (period, vol) in enumerate(periods):
+                    status, color = get_volatility_status(vol)
+                    with vol_cols[i]:
+                        if vol is not None:
+                            st.markdown(
+                                f"""
+                                <div style='text-align: center'>
+                                    <p style='font-weight: bold'>{period}</p>
+                                    <p style='color: {color}; font-size: 24px'>{vol:.2f}%</p>
+                                    <p style='color: {color}'>{status}</p>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            st.markdown(
+                                f"""
+                                <div style='text-align: center'>
+                                    <p style='font-weight: bold'>{period}</p>
+                                    <p style='color: gray'>Нет данных</p>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+
+                # Добавляем пояснение
+                st.markdown("""
+                **Интерпретация волатильности:**
+                - 🟢 **Низкая** (<10%): Стабильный рынок, низкий риск, подходит для долгосрочных инвестиций
+                - 🟡 **Средняя** (10-30%): Умеренные колебания, сбалансированный риск, подходит для среднесрочной торговли
+                - 🔴 **Высокая** (>30%): Сильные колебания, высокий риск/потенциал, подходит для краткосрочной торговли
+                """)
                 
 if __name__ == "__main__":
     main()
