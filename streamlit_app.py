@@ -187,10 +187,6 @@ def main():
                 col2.metric("Минимальная цена", f"{min_price:.2f}")
                 col3.metric("Максимальная цена", f"{max_price:.2f}")
                 col4.metric("Supply", f"{int(supply)}")
-
-                # Затем добавляем разделитель и анализ волатильности
-                st.markdown("---")  # разделитель
-                st.subheader("Анализ волатильности")
                                 
 if __name__ == "__main__":
     main()
