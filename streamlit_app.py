@@ -50,25 +50,25 @@ def load_supply_data():
         st.error(f"Файл {supply_path} не найден.")
         return {}
 
-def get_time_filtered_data(df, time_filter):
-    now = df['timestamp'].max()
-    
-    if time_filter == '30min':
-        start_time = now - timedelta(minutes=30)
-    elif time_filter == '1h':
-        start_time = now - timedelta(hours=1)
-    elif time_filter == '12h':
-        start_time = now - timedelta(hours=12)
-    elif time_filter == '1d':
-        start_time = now - timedelta(days=1)
-    elif time_filter == '1w':
-        start_time = now - timedelta(weeks=1)
-    elif time_filter == '7d':
-        start_time = now - timedelta(days=7)
-    else:  # 'all'
+def get_time_filtered_data(df, minutes):
+    if minutes == 0:  # Показать все данные
         return df
     
+    now = df['timestamp'].max()
+    start_time = now - timedelta(minutes=minutes)
     return df[df['timestamp'] >= start_time]
+
+def format_time_label(minutes):
+    if minutes == 0:
+        return "All"
+    elif minutes < 60:
+        return f"{minutes}min"
+    elif minutes < 1440:  # меньше 24 часов
+        hours = minutes // 60
+        return f"{hours}h"
+    else:
+        days = minutes // 1440
+        return f"{days}d"
 
 def main():
     # Загрузка всех данных
@@ -95,12 +95,21 @@ def main():
         
         selected_items = [display_to_original[item] for item in selected_items_with_supply]
         
-        # Добавляем переключатели временных интервалов
-        time_filters = ['30min', '1h', '12h', '1d', '1w', '7d', 'all']
-        selected_time_filter = st.radio(
+        # Временные интервалы в минутах
+        time_intervals = {
+            0: "All",        # 0 минут = все данные
+            30: "30min",     # 30 минут
+            60: "1h",        # 1 час
+            720: "12h",      # 12 часов
+            1440: "1d",      # 1 день
+            10080: "7d",     # 7 дней
+        }
+        
+        selected_minutes = st.select_slider(
             "Временной интервал",
-            time_filters,
-            horizontal=True
+            options=list(time_intervals.keys()),
+            value=0,
+            format_func=format_time_label
         )
         
         show_ma = st.checkbox("Показать скользящую среднюю", value=True)
@@ -109,7 +118,7 @@ def main():
 
     if selected_items:
         # Фильтруем данные по выбранному временному интервалу
-        filtered_df = get_time_filtered_data(df, selected_time_filter)
+        filtered_df = get_time_filtered_data(df, selected_minutes)
         
         fig = go.Figure()
         
