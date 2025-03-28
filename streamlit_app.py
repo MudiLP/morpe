@@ -95,109 +95,26 @@ def main():
         
         selected_items = [display_to_original[item] for item in selected_items_with_supply]
         
-        # Создаем максимально детальные временные интервалы
-        time_intervals = [
-            0,      # All
-            1,      # 1 минута
-            2,      # 2 минуты
-            3,      # 3 минуты
-            5,      # 5 минут
-            7,      # 7 минут
-            10,     # 10 минут
-            15,     # 15 минут
-            20,     # 20 минут
-            25,     # 25 минут
-            30,     # 30 минут
-            35,     # 35 минут
-            40,     # 40 минут
-            45,     # 45 минут
-            50,     # 50 минут
-            55,     # 55 минут
-            60,     # 1 час
-            90,     # 1.5 часа
-            120,    # 2 часа
-            150,    # 2.5 часа
-            180,    # 3 часа
-            210,    # 3.5 часа
-            240,    # 4 часа
-            300,    # 5 часов
-            360,    # 6 часов
-            420,    # 7 часов
-            480,    # 8 часов
-            540,    # 9 часов
-            600,    # 10 часов
-            660,    # 11 часов
-            720,    # 12 часов
-            840,    # 14 часов
-            960,    # 16 часов
-            1080,   # 18 часов
-            1200,   # 20 часов
-            1320,   # 22 часа
-            1440,   # 1 день
-            1800,   # 1.25 дня
-            2160,   # 1.5 дня
-            2880,   # 2 дня
-            3600,   # 2.5 дня
-            4320,   # 3 дня
-            5040,   # 3.5 дня
-            5760,   # 4 дня
-            6480,   # 4.5 дня
-            7200,   # 5 дней
-            7920,   # 5.5 дней
-            8640,   # 6 дней
-            9360,   # 6.5 дней
-            10080   # 7 дней
-        ]
-
-        def format_time_label(minutes):
-            if minutes == 0:
-                return "All"
-            elif minutes < 60:
-                return f"{minutes}min"
-            elif minutes < 1440:
-                hours = minutes / 60
-                if hours.is_integer():
-                    return f"{int(hours)}h"
-                return f"{hours:.1f}h"
-            else:
-                days = minutes / 1440
-                if days.is_integer():
-                    return f"{int(days)}d"
-                return f"{days:.1f}d"
-
-        # Добавляем две опции отображения временного интервала
-        time_selector_type = st.radio(
-            "Тип выбора времени",
-            ["Бегунок", "Точный ввод"],
-            horizontal=True
+        # Временные интервалы в минутах
+        time_intervals = {
+            30: "30min",     # 30 минут
+            60: "1h",        # 1 час
+            720: "12h",      # 12 часов
+            1440: "1d",      # 1 день
+            10080: "7d",     # 7 дней
+            0: "All",        # 0 минут = все данные
+        }
+        
+        selected_minutes = st.select_slider(
+            "Временной интервал",
+            options=list(time_intervals.keys()),
+            value=0,
+            format_func=format_time_label
         )
-
-        if time_selector_type == "Бегунок":
-            selected_minutes = st.select_slider(
-                "Временной интервал",
-                options=time_intervals,
-                value=0,
-                format_func=format_time_label
-            )
-        else:
-            selected_minutes = st.slider(
-                "Временной интервал (минуты)",
-                min_value=0,
-                max_value=10080,
-                value=0,
-                step=1
-            )
-
-        # Показываем точное значение выбранного интервала
-        if selected_minutes > 0:
-            hours = selected_minutes / 60
-            days = selected_minutes / 1440
-            st.caption(
-                f"Выбранный интервал: \n"
-                f"- {selected_minutes} минут\n"
-                f"- {hours:.2f} часов\n"
-                f"- {days:.2f} дней"
-            )
+        
+        show_ma = st.checkbox("Показать скользящую среднюю", value=True)
+        if show_ma:
+            ma_period = st.slider("Период скользящей средней (часов)", 1, 24, 6)
 
     if selected_items:
         # Фильтруем данные по выбранному временному интервалу
