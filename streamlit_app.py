@@ -4,6 +4,9 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import os
 
+# Настройка страницы
+st.set_page_config(page_title="Price History Viewer", layout="wide")
+
 st.markdown("""
     <style>
     /* Стилизация бегунка */
@@ -22,9 +25,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-# Настройка страницы
-st.set_page_config(page_title="Price History Viewer", layout="wide")
 
 # Функция загрузки данных изображений
 @st.cache_data
