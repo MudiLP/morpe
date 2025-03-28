@@ -4,6 +4,25 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import os
 
+st.markdown("""
+    <style>
+    /* Стилизация бегунка */
+    .stSlider [data-baseweb="slider"] {
+        background-color: rgba(28, 131, 225, 0.26) !important;
+    }
+    
+    /* Стилизация ползунка */
+    .stSlider [data-baseweb="thumb"] {
+        background-color: rgb(28, 131, 225) !important;
+    }
+    
+    /* Стилизация активной части бегунка */
+    .stSlider [data-baseweb="track"] {
+        background: linear-gradient(to right, rgb(28, 131, 225), rgb(28, 131, 225)) !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Настройка страницы
 st.set_page_config(page_title="Price History Viewer", layout="wide")
 
