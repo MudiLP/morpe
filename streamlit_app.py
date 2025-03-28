@@ -84,6 +84,10 @@ def main():
             min_value=df['timestamp'].min().date(),
             max_value=df['timestamp'].max().date()
         )
+        
+        show_ma = st.checkbox("Показать скользящую среднюю", value=True)
+        if show_ma:
+            ma_period = st.slider("Период скользящей средней (часов)", 1, 24, 6)
 
     # После определения selected_items и date_range добавляем процентное изменение
     with col2:
