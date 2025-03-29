@@ -191,7 +191,7 @@ def main():
                 st.markdown("""
                     <style>
                     [data-testid="stImage"] {
-                        margin-top: 50px;  /* Измените это значение для желаемого отступа */
+                        margin-top: 25px;  /* Измените это значение для желаемого отступа */
                     }
                     </style>
                     """, unsafe_allow_html=True)
