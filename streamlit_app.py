@@ -13,24 +13,29 @@ def load_image_data():
     file_path = "data/img.csv"
     
     try:
-        # Используем pandas для чтения CSV
-        df_img = pd.read_csv(file_path)
+        # Добавляем специальные параметры для чтения CSV
+        df_img = pd.read_csv(
+            file_path,
+            quoting=csv.QUOTE_ALL,  # Обрабатываем все поля как строки в кавычках
+            escapechar='\\',        # Используем обратный слэш как escape-символ
+            encoding='utf-8'        # Явно указываем кодировку
+        )
         
-        # Создаем словарь с несколькими вариантами ключей для каждого изображения
+        # Остальной код без изменений
         img_dict = {}
         for name, url in zip(df_img['name'], df_img['img']):
-            clean_name = name.strip().strip('"')  # Удаляем пробелы и кавычки
+            clean_name = name.strip().strip('"')
             img_dict[clean_name] = url
-            img_dict[clean_name.strip()] = url  # Дополнительная очистка
-            img_dict[clean_name.replace('"', '')] = url  # Удаляем все кавычки
+            img_dict[clean_name.strip()] = url
+            img_dict[clean_name.replace('"', '')] = url
             
         return img_dict
         
     except FileNotFoundError:
-        st.error(f"File not found: {file_path}")
+        st.error(f"Файл не найден: {file_path}")
         return {}
     except Exception as e:
-        st.error(f"Error reading file {file_path}: {str(e)}")
+        st.error(f"Ошибка чтения файла {file_path}: {str(e)}")
         return {}
 
 @st.cache_data(ttl=60)
