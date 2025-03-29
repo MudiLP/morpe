@@ -13,32 +13,33 @@ if st.button('Clear Cache'):
 # Image data loading function
 @st.cache_data
 def load_image_data():
-    # Определяем путь к файлу
     file_path = "data/img.csv"
     
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
-            
-        # Выведите первые несколько строк для проверки
-        st.write("File contents (first 5 lines):")
-        for i, line in enumerate(lines[:5]):
-            st.write(f"Line {i}: {line.strip()}")
-                    
+        # Используем pandas для чтения CSV
+        df_img = pd.read_csv(file_path)
+        
+        # Создаем словарь с несколькими вариантами ключей для каждого изображения
         img_dict = {}
-        for line in lines[1:]:  # пропускаем заголовок
-            # Используем split(',') для корректной обработки CSV
-            parts = line.split('","')
-            if len(parts) == 2:
-                # Удаляем кавычки и пробелы
-                name = parts[0].strip(' "')
-                img = parts[1].strip(' "\n')
-                img_dict[name] = img
+        for name, url in zip(df_img['name'], df_img['img']):
+            clean_name = name.strip().strip('"')  # Удаляем пробелы и кавычки
+            img_dict[clean_name] = url
+            img_dict[clean_name.strip()] = url  # Дополнительная очистка
+            img_dict[clean_name.replace('"', '')] = url  # Удаляем все кавычки
         
-        # Добавьте отладочный вывод
-        st.write(f"Loaded {len(img_dict)} images")
-        st.write("Image dictionary:", img_dict)
+        # Отладочная информация
+        st.write(f"Loaded {len(df_img)} unique items ({len(img_dict)} total variants)")
         
+        # Показываем несколько примеров для проверки
+        st.write("Sample items from dictionary:")
+        sample_items = list(set([name.strip() for name in df_img['name']]))[:3]
+        for item in sample_items:
+            clean_item = item.strip().strip('"')
+            st.write(f"Original: '{item}'")
+            st.write(f"Cleaned: '{clean_item}'")
+            st.write(f"Has image: {clean_item in img_dict}")
+            st.write("---")
+            
         return img_dict
         
     except FileNotFoundError:
@@ -85,6 +86,8 @@ def main():
     # Проверка соответствия имен
     items = [col for col in df.columns if col != 'timestamp']
     st.write("Items in price_history.csv:", items)
+    for item in items[:5]:  # Показываем первые 5 предметов
+        st.write(f"'{item}' -> Image exists: {item in img_dict}")
     st.write("Items in img.csv:", list(img_dict.keys()))
     items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
     display_to_original = dict(zip(items_with_supply, items))
@@ -219,8 +222,19 @@ def main():
                     }
                     </style>
                     """, unsafe_allow_html=True)
-                # Затем один раз отображаем изображение
-                img_url = img_dict.get(item, default_img)
+                
+                # Ищем изображение с разными вариантами очистки имени
+                item_clean = item.strip().strip('"')
+                img_url = img_dict.get(item_clean, None)
+                if img_url is None:
+                    img_url = img_dict.get(item.strip(), None)
+                if img_url is None:
+                    img_url = img_dict.get(item.replace('"', '').strip(), None)
+                if img_url is None:
+                    img_url = default_img
+                    st.warning(f"No image found for item: '{item}'")
+                
+                # Отображаем изображение один раз
                 st.image(img_url, use_container_width=True)
                 
             with stats_col:
