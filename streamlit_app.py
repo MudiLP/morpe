@@ -13,22 +13,22 @@ def load_image_data():
     file_path = "data/img.csv"
     
     try:
-        # Добавляем специальные параметры для чтения CSV
-        df_img = pd.read_csv(
-            file_path,
-            quoting=csv.QUOTE_ALL,  # Обрабатываем все поля как строки в кавычках
-            escapechar='\\',        # Используем обратный слэш как escape-символ
-            encoding='utf-8'        # Явно указываем кодировку
-        )
-        
-        # Остальной код без изменений
-        img_dict = {}
-        for name, url in zip(df_img['name'], df_img['img']):
-            clean_name = name.strip().strip('"')
-            img_dict[clean_name] = url
-            img_dict[clean_name.strip()] = url
-            img_dict[clean_name.replace('"', '')] = url
+        # Читаем файл вручную
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
             
+        img_dict = {}
+        # Пропускаем заголовок
+        for line in lines[1:]:
+            # Разделяем строку по запятой, но только на первое вхождение
+            parts = line.split(',', 1)
+            if len(parts) == 2:
+                name = parts[0].strip().strip('"')
+                url = parts[1].strip().strip('"')
+                img_dict[name] = url
+                img_dict[name.strip()] = url
+                img_dict[name.replace('"', '')] = url
+                
         return img_dict
         
     except FileNotFoundError:
