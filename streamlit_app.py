@@ -49,6 +49,14 @@ def load_supply_data():
     except FileNotFoundError:
         st.error(f"File {supply_path} not found.")
         return {}
+    
+# Функция для получения последнего непустого значения
+def get_last_valid_price(df, item):
+    # Получаем все непустые значения
+    valid_prices = df[item].dropna()
+    if len(valid_prices) > 0:
+        return valid_prices.iloc[-1]
+    return None
 
 def main():
     # Load all data
@@ -56,11 +64,6 @@ def main():
     supply_dict = load_supply_data()
     img_dict = load_image_data()
     default_img = "https://i.ibb.co/tpZ9HsSY/photo-2023-12-23-09-42-33.jpg"
-
-    # Title and percentage change in one line
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        st.title("Price History Analysis")
     
     items = [col for col in df.columns if col != 'timestamp']
     items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
@@ -89,25 +92,43 @@ def main():
         if show_ma:
             ma_period = st.slider("Moving average period (hours)", 1, 24, 6)
 
-    # Add percentage change after selected_items and date_range definition
-    with col2:
-        if selected_items and len(selected_items) == 1:
-            item = selected_items[0]
-            mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
-            filtered_df = df.loc[mask]
-            
-            start_price = filtered_df[item].iloc[0]
-            end_price = filtered_df[item].iloc[-1]
-            price_change = end_price - start_price
-            price_change_percent = (price_change / start_price) * 100
-            
-            price_change_color = "green" if price_change >= 0 else "red"
-            price_change_arrow = "↑" if price_change >= 0 else "↓"
-            
-            st.markdown(
-                f"<h2 style='color: {price_change_color}; text-align: right; margin-top: 15px;'>{price_change_arrow} {abs(price_change_percent):.2f}%</h2>",
-                unsafe_allow_html=True
-            )
+        # Создаем колонки для заголовка и процента
+    title_col, percent_col = st.columns([2, 1])
+    
+    # Добавляем заголовок в левую колонку
+    with title_col:
+        st.title("Price History Analysis")
+
+    # Check date_range
+    if len(date_range) != 2:
+        st.error("Please select two dates to define the period")
+        return
+
+    # Display chart and statistics
+    if selected_items:
+        mask = (df['timestamp'].dt.date >= date_range[0]) & (df['timestamp'].dt.date <= date_range[1])
+        filtered_df = df.loc[mask]
+        
+        # Теперь добавляем процентное изменение в правую колонку
+        with percent_col:
+            if len(selected_items) == 1:
+                item = selected_items[0]
+                start_price = filtered_df[item].dropna().iloc[0] if not filtered_df[item].dropna().empty else None
+                end_price = get_last_valid_price(filtered_df, item)
+                
+                if start_price is not None and end_price is not None:
+                    percent_change = ((end_price - start_price) / start_price) * 100
+                    color = "green" if percent_change >= 0 else "red"
+                    arrow = "↑" if percent_change >= 0 else "↓"
+                    st.markdown(f"""
+                        <div style='text-align: right; padding-top: 1rem;'>
+                            <span style='font-size: 32px; color: {color}; font-weight: bold;'>
+                                {arrow} {abs(percent_change):.2f}%
+                            </span>
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
 
     # Check date_range
     if len(date_range) != 2:
@@ -159,24 +180,22 @@ def main():
             item = selected_items[0]
             
             # Calculate percentage change
-            start_price = filtered_df[item].iloc[0]  # Price at start of period
-            end_price = filtered_df[item].iloc[-1]   # Price at end of period
-            price_change = end_price - start_price
-            price_change_percent = (price_change / start_price) * 100
+            start_price = filtered_df[item].dropna().iloc[0] if not filtered_df[item].dropna().empty else None
+            end_price = get_last_valid_price(filtered_df, item)
 
-            img_col, stats_col = st.columns([1, 2])
+            img_col, stats_col = st.columns([0.5, 2])
             
             with img_col:
                 img_url = img_dict.get(item, default_img)
                 st.image(img_url, use_container_width=True)
-            
+                
             with stats_col:
                 st.subheader(f"Statistics - {item}")
                 col1, col2, col3, col4, col5 = st.columns(5)
                 
-                current_price = filtered_df[item].iloc[-1]
-                min_price = filtered_df[item].min()
-                max_price = filtered_df[item].max()
+                current_price = get_last_valid_price(filtered_df, item)
+                min_price = filtered_df[item].dropna().min() if not filtered_df[item].dropna().empty else None
+                max_price = filtered_df[item].dropna().max() if not filtered_df[item].dropna().empty else None
                 supply = supply_dict.get(item, 0)
                 
                 # Display metrics with responsive font size and theme-aware colors
@@ -230,12 +249,19 @@ def main():
                         <div class="metric-label">{label}</div>
                         <div class="metric-value">{value}</div>
                     </div>
-                    """
+                    """                    
+                
+                # И обновите отображение метрик:
+                def format_value(value):
+                    if value is None:
+                        return "Нет данных"
+                    return f"{value:.2f}"
 
-                col1.markdown(custom_metric("Current Price", f"{current_price:.2f}"), unsafe_allow_html=True)
-                col2.markdown(custom_metric("Minimum Price", f"{min_price:.2f}"), unsafe_allow_html=True)
-                col3.markdown(custom_metric("Maximum Price", f"{max_price:.2f}"), unsafe_allow_html=True)
+
+                col1.markdown(custom_metric("Current Price", format_value(current_price)), unsafe_allow_html=True)
+                col2.markdown(custom_metric("Minimum Price", format_value(min_price)), unsafe_allow_html=True)
+                col3.markdown(custom_metric("Maximum Price", format_value(max_price)), unsafe_allow_html=True)
                 col4.markdown(custom_metric("Supply", f"{int(supply)}"), unsafe_allow_html=True)
-                                
+                
 if __name__ == "__main__":
     main()
