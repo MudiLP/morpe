@@ -7,9 +7,6 @@ import os
 # Page configuration
 st.set_page_config(page_title="Price History Viewer", layout="wide")
 
-if st.button('Clear Cache'):
-    st.cache_data.clear()
-
 # Image data loading function
 @st.cache_data
 def load_image_data():
@@ -75,11 +72,6 @@ def main():
     items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
     display_to_original = dict(zip(items_with_supply, items))
     
-    # Проверка несоответствий
-    missing_images = [item for item in items if item not in img_dict]
-    if missing_images:
-        st.warning(f"Missing images for items: {missing_images}")
-
     # Sidebar with filters
     with st.sidebar:
         st.header("Filters")
