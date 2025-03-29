@@ -190,7 +190,7 @@ def main():
                 st.markdown("""
                     <style>
                     [data-testid="stImage"] {
-                        margin-top: 15px;
+                        margin-top: 65px;
                     }
                     </style>
                     """, unsafe_allow_html=True)
