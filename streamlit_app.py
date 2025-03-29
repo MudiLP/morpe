@@ -203,16 +203,39 @@ def main():
                     <style>
                     .metric-container {
                         text-align: center;
+                        padding: 0.5rem;
                     }
                     .metric-label {
-                        font-size: 1vw;
+                        font-size: 0.8rem;
                         color: var(--text-color-secondary);
-                        margin-bottom: 0.5vw;
+                        margin-bottom: 0.3rem;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
                     .metric-value {
-                        font-size: 1.5vw;
+                        font-size: 1rem;
                         font-weight: bold;
                         color: var(--text-color-primary);
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    /* Адаптивные стили для разных размеров экрана */
+                    @media (min-width: 1200px) {
+                        .metric-label { font-size: 1rem; }
+                        .metric-value { font-size: 1.2rem; }
+                    }
+
+                    @media (max-width: 768px) {
+                        .metric-label { font-size: 0.7rem; }
+                        .metric-value { font-size: 0.9rem; }
+                    }
+
+                    @media (max-width: 480px) {
+                        .metric-label { font-size: 0.6rem; }
+                        .metric-value { font-size: 0.8rem; }
                     }
 
                     /* Light theme colors */
@@ -228,6 +251,7 @@ def main():
                     }
                     </style>
                 """
+
                 st.markdown(metric_style, unsafe_allow_html=True)
 
                 # Add theme detection script
