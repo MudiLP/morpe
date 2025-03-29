@@ -179,7 +179,7 @@ def main():
                 max_price = filtered_df[item].max()
                 supply = supply_dict.get(item, 0)
                 
-                # Display metrics with responsive font size
+                # Display metrics with responsive font size and theme-aware colors
                 metric_style = """
                     <style>
                     .metric-container {
@@ -187,19 +187,43 @@ def main():
                     }
                     .metric-label {
                         font-size: 1vw;
-                        color: #888;
+                        color: var(--text-color-secondary);
                         margin-bottom: 0.5vw;
                     }
                     .metric-value {
                         font-size: 1.5vw;
                         font-weight: bold;
-                        color: #0f0f0f;
+                        color: var(--text-color-primary);
+                    }
+
+                    /* Light theme colors */
+                    [data-theme="light"] {
+                        --text-color-primary: #0f0f0f;
+                        --text-color-secondary: #888;
+                    }
+
+                    /* Dark theme colors */
+                    [data-theme="dark"] {
+                        --text-color-primary: #ffffff;
+                        --text-color-secondary: #cccccc;
                     }
                     </style>
                 """
                 st.markdown(metric_style, unsafe_allow_html=True)
 
-                # Custom metric display function
+                # Add theme detection script
+                theme_script = """
+                    <script>
+                        if (document.documentElement.classList.contains('dark')) {
+                            document.documentElement.setAttribute('data-theme', 'dark');
+                        } else {
+                            document.documentElement.setAttribute('data-theme', 'light');
+                        }
+                    </script>
+                """
+                st.markdown(theme_script, unsafe_allow_html=True)
+
+                # Custom metric display function remains the same
                 def custom_metric(label, value):
                     return f"""
                     <div class="metric-container">
