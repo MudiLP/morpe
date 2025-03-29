@@ -7,28 +7,38 @@ import os
 # Page configuration
 st.set_page_config(page_title="Price History Viewer", layout="wide")
 
+if st.button('Clear Cache'):
+    st.cache_data.clear()
+
 # Image data loading function
 @st.cache_data
 def load_image_data():
     try:
         with open("data/img.csv", 'r', encoding='utf-8') as file:
             lines = file.readlines()
-        
+            
+        # Выведите первые несколько строк для проверки
+        st.write("File contents (first 5 lines):")
+        for i, line in enumerate(lines[:5]):
+            st.write(f"Line {i}: {line.strip()}")
+                    
         img_dict = {}
-        for line in lines[1:]:  # skip header
+        for line in lines[1:]:
             split_index = line.find("https://")
             if split_index != -1:
                 name = line[:split_index].strip()
                 img = line[split_index:].strip()
                 img_dict[name] = img
-                
+        
+        # Добавьте отладочный вывод
+        print(f"Loaded {len(img_dict)} images from {file_path}")
         return img_dict
         
     except FileNotFoundError:
-        st.error("File img.csv not found.")
+        st.error(f"File not found: {file_path}")
         return {}
     except Exception as e:
-        st.error(f"Error reading img.csv file: {str(e)}")
+        st.error(f"Error reading file {file_path}: {str(e)}")
         return {}
 
 @st.cache_data(ttl=60)
