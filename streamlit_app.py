@@ -26,19 +26,6 @@ def load_image_data():
             img_dict[clean_name] = url
             img_dict[clean_name.strip()] = url  # Дополнительная очистка
             img_dict[clean_name.replace('"', '')] = url  # Удаляем все кавычки
-        
-        # Отладочная информация
-        st.write(f"Loaded {len(df_img)} unique items ({len(img_dict)} total variants)")
-        
-        # Показываем несколько примеров для проверки
-        st.write("Sample items from dictionary:")
-        sample_items = list(set([name.strip() for name in df_img['name']]))[:3]
-        for item in sample_items:
-            clean_item = item.strip().strip('"')
-            st.write(f"Original: '{item}'")
-            st.write(f"Cleaned: '{clean_item}'")
-            st.write(f"Has image: {clean_item in img_dict}")
-            st.write("---")
             
         return img_dict
         
@@ -85,10 +72,6 @@ def main():
 
     # Проверка соответствия имен
     items = [col for col in df.columns if col != 'timestamp']
-    st.write("Items in price_history.csv:", items)
-    for item in items[:5]:  # Показываем первые 5 предметов
-        st.write(f"'{item}' -> Image exists: {item in img_dict}")
-    st.write("Items in img.csv:", list(img_dict.keys()))
     items_with_supply = [f"{item} (Supply: {int(supply_dict.get(item, 0))})" for item in items]
     display_to_original = dict(zip(items_with_supply, items))
     
