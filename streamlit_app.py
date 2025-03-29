@@ -188,6 +188,15 @@ def main():
             with img_col:
                 img_url = img_dict.get(item, default_img)
                 st.image(img_url, use_container_width=True)
+                st.markdown("""
+                    <style>
+                    [data-testid="stImage"] {
+                        margin-top: 50px;  /* Измените это значение для желаемого отступа */
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
+                img_url = img_dict.get(item, default_img)
+                st.image(img_url, use_container_width=True)
                 
             with stats_col:
                 st.subheader(f"Statistics - {item}")
