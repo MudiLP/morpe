@@ -186,15 +186,15 @@ def main():
             img_col, stats_col = st.columns([0.5, 2])
             
             with img_col:
-                img_url = img_dict.get(item, default_img)
-                st.image(img_url, use_container_width=True)
+                # Сначала добавляем CSS для отступа
                 st.markdown("""
                     <style>
                     [data-testid="stImage"] {
-                        margin-top: 18px;  /* Измените это значение для желаемого отступа */
+                        margin-top: 15px;
                     }
                     </style>
                     """, unsafe_allow_html=True)
+                # Затем один раз отображаем изображение
                 img_url = img_dict.get(item, default_img)
                 st.image(img_url, use_container_width=True)
                 
